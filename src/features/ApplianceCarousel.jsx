@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-// import your SVGs here
+// import SVGs here
 import fridgeIcon from "../assets/fridge.svg";
 import tvIcon from "../assets/tv.svg";
 import washerIcon from "../assets/washing.svg";
