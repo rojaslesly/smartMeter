@@ -1,0 +1,8 @@
+{
+  "lastUpdated":"2026-05-03T10:00:00Z",
+  "data":[
+    {"time":"8:00 AM","powerQuality":85,"outageState":"Normal","voltage":120,"frequency":60},
+    {"time":"9:00 AM","powerQuality":62,"outageState":"Warning","voltage":115,"frequency":59.8},
+    {"time":"10:00 AM","powerQuality":30,"outageState":"Outage Risk","voltage":108,"frequency":59.5}
+  ]
+}
