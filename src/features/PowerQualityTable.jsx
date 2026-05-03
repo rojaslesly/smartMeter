@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import pqData from "../data/pqDataTable.json"; // adjust path if needed
+import pqData from "../data/pqDataTable.json"; 
 
 export default function PowerQualityTable() {
   const [data, setData] = useState([]);
