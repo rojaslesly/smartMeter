@@ -14,3 +14,14 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Backend / Lambda
+
+This project fetches grid/meter data from an AWS Lambda function. The frontend calls the function URL configured via the `VITE_LAMBDA_URL` environment variable used in [src/api/aws-api.js](src/api/aws-api.js).
+
+- Environment: create a local `.env` file with `VITE_LAMBDA_URL` pointing to the Lambda Function URL. Example file (must not be committed): [.env](.env)
+- Query parameters: the frontend sends `bus_id` and `target_time` (format: `YYYY-MM-DD HH:mm:ss`). The Lambda returns the closest `records` row as JSON.
+
+Onboarding steps for a new developer:
+
+Retreive the .env file and place at the root of the project to have access to lambda function url
