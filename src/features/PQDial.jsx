@@ -1,21 +1,26 @@
-import React, { useEffect, useMemo, useState } from "react";
-import pqData from "../data/pqData.json";
+import React, { useEffect, useMemo, useState } from 'react';
+import pqData from '../data/pqData.json';
 
 function polarToCartesian(cx, cy, r, angleDeg) {
   const rad = (Math.PI / 180) * angleDeg;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+
+  return {
+    x: cx + r * Math.cos(rad),
+    y: cy + r * Math.sin(rad),
+  };
 }
 
 function describeArc(cx, cy, r, startAngle, endAngle) {
   const start = polarToCartesian(cx, cy, r, startAngle);
   const end = polarToCartesian(cx, cy, r, endAngle);
-  const largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? "0" : "1";
+
+  const largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? '0' : '1';
 
   return [
-    "M",
+    'M',
     start.x,
     start.y,
-    "A",
+    'A',
     r,
     r,
     0,
@@ -23,7 +28,7 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
     1,
     end.x,
     end.y,
-  ].join(" ");
+  ].join(' ');
 }
 
 export default function Dial_PQ({ onValueChange }) {
@@ -32,21 +37,51 @@ export default function Dial_PQ({ onValueChange }) {
   const currentItem = pqData[currentIndex];
   const value = currentItem?.pq ?? 0;
 
-  const W = 320;
-  const H = 190;
+  const W = 420;
+  const H = 230;
+
   const cx = W / 2;
-  const cy = 150;
-  const r = 95;
+  const cy = 190;
+
+  const r = 145;
 
   const min = 0;
   const max = 100;
+
   const startAngle = -180;
   const endAngle = 0;
 
-  const needleAngle = useMemo(() => {
+  // Maps value -> bubble angle
+  const bubbleAngle = useMemo(() => {
     const t = (value - min) / (max - min);
+
     return startAngle + t * (endAngle - startAngle);
   }, [value]);
+
+  // Gets x/y location of bubble
+  const bubblePosition = polarToCartesian(cx, cy, r, bubbleAngle);
+
+  // NEW:
+  // Bubble outline color changes with level
+  const bubbleColor =
+    value <= 25
+      ? '#d32f2f' // red
+      : value <= 50
+      ? '#f2c300' // yellow
+      : value <= 75
+      ? '#b9d84a' // light green
+      : '#2e7d32'; // green
+
+  // NEW:
+  // Changes label text depending on power quality
+  const conditionLabel =
+    value <= 25
+      ? 'Poor conditions'
+      : value <= 50
+      ? 'Moderate conditions'
+      : value <= 75
+      ? 'Stable conditions'
+      : 'Excellent conditions';
 
   useEffect(() => {
     onValueChange?.(value);
@@ -55,408 +90,112 @@ export default function Dial_PQ({ onValueChange }) {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % pqData.length);
-    }, 3000); // 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
 
   const segments = [
-    { from: -180, to: -135, color: "#d32f2f" },
-    { from: -135, to: -90, color: "#f2c300" },
-    { from: -90, to: -45, color: "#b9d84a" },
-    { from: -45, to: 0, color: "#2e7d32" },
+    { from: -180, to: -135, color: '#d32f2f' },
+    { from: -135, to: -90, color: '#f2c300' },
+    { from: -90, to: -45, color: '#b9d84a' },
+    { from: -45, to: 0, color: '#2e7d32' },
   ];
 
   return (
     <div
       style={{
-        width: "320px",
-        minHeight: "260px",
-        background: "#f7f7f7",
-        border: "1px solid #d9d9d9",
-        borderRadius: "16px",
-        padding: "18px",
-        boxSizing: "border-box",
+        width: '100%',
+        background: '#fff',
+        border: '1px solid #ddd',
+        borderRadius: '16px',
+        padding: '5px',
+        boxSizing: 'border-box',
       }}
     >
       <h3
         style={{
-          margin: 0,
-          marginBottom: "12px",
-          fontSize: "18px",
-          fontWeight: "700",
-          color: "#111",
+          margin: 10,
+          marginBottom: '5px',
+          paddingRight: '200px',
+          fontSize: '16px',
+          fontWeight: '700',
+          color: '#111',
+          lineHeight: '140%',
         }}
       >
         Power Quality
       </h3>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
+        {/* Colored dial segments */}
+        {segments.map((s, i) => (
           <path
-            d={describeArc(cx, cy, r, -180, 0)}
+            key={i}
+            d={describeArc(cx, cy, r, s.from, s.to)}
             fill="none"
-            stroke="#eee"
-            strokeWidth={26}
-            strokeLinecap="round"
+            stroke={s.color}
+            strokeWidth={38}
+            strokeLinecap="butt"
           />
+        ))}
 
-          {segments.map((s, i) => (
-            <path
-              key={i}
-              d={describeArc(cx, cy, r, s.from, s.to)}
-              fill="none"
-              stroke={s.color}
-              strokeWidth={26}
-              strokeLinecap="butt"
-            />
-          ))}
+        {/* White separators */}
+        {[-135, -90, -45].map((a) => {
+          const p1 = polarToCartesian(cx, cy, r - 20, a);
 
-          {[-135, -90, -45].map((a) => {
-            const p1 = polarToCartesian(cx, cy, r - 13, a);
-            const p2 = polarToCartesian(cx, cy, r + 13, a);
-            return (
-              <line
-                key={a}
-                x1={p1.x}
-                y1={p1.y}
-                x2={p2.x}
-                y2={p2.y}
-                stroke="#fff"
-                strokeWidth={4}
-                strokeLinecap="round"
-                opacity={0.9}
-              />
-            );
-          })}
+          const p2 = polarToCartesian(cx, cy, r + 20, a);
 
-          <g transform={`rotate(${needleAngle} ${cx} ${cy})`}>
+          return (
             <line
-              x1={cx}
-              y1={cy}
-              x2={cx + r * 0.75}
-              y2={cy}
-              stroke="#263238"
+              key={a}
+              x1={p1.x}
+              y1={p1.y}
+              x2={p2.x}
+              y2={p2.y}
+              stroke="#fff"
               strokeWidth={5}
-              strokeLinecap="round"
             />
-          </g>
+          );
+        })}
 
-          <circle cx={cx} cy={cy} r={12} fill="#263238" />
-        </svg>
-      </div>
+        {/* Moving bubble */}
+        <circle
+          cx={bubblePosition.x}
+          cy={bubblePosition.y}
+          r={22}
+          // Bubble inside
+          fill="#fff"
+          // CHANGED:
+          // Bubble border changes color
+          stroke={bubbleColor}
+          strokeWidth={5}
+        />
 
-      <div style={{ marginTop: "10px", fontSize: "14px", color: "#444" }}>
-        <div>Current Power Quality: <b>{value}</b></div>
-        <div>Time: <b>{currentItem?.time}</b></div>
-      </div>
+        {/* Center value */}
+        <text
+          x={cx}
+          y={cy - 40} // To change position of middle number
+          textAnchor="middle"
+          fontSize="42"
+          fontWeight="700"
+          fill="#000"
+        >
+          {value}
+        </text>
+
+        {/* Label */}
+        <text
+          x={cx}
+          y={cy + 3}
+          textAnchor="middle"
+          fontSize="18"
+          fill="#000"
+          fontWeight="500"
+        >
+          {conditionLabel}
+        </text>
+      </svg>
     </div>
   );
 }
-// import React, { useMemo, useState } from "react";
-
-// function polarToCartesian(cx, cy, r, angleDeg) {
-//   const rad = (Math.PI / 180) * angleDeg;
-//   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-// }
-
-// function describeArc(cx, cy, r, startAngle, endAngle) {
-//   const start = polarToCartesian(cx, cy, r, startAngle);
-//   const end = polarToCartesian(cx, cy, r, endAngle);
-//   const largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? "0" : "1";
-
-//   return [
-//     "M",
-//     start.x,
-//     start.y,
-//     "A",
-//     r,
-//     r,
-//     0,
-//     largeArcFlag,
-//     1,
-//     end.x,
-//     end.y,
-//   ].join(" ");
-// }
-
-// function Dial_PQ({ onValueChange }) {
-//   const [value, setValue] = useState(65);
-
-//   const W = 360;
-//   const H = 220;
-//   const cx = W / 2;
-//   const cy = 170;
-//   const r = 120;
-
-//   const min = 0;
-//   const max = 100;
-//   const startAngle = -180;
-//   const endAngle = 0;
-
-//   const needleAngle = useMemo(() => {
-//     const t = (value - min) / (max - min);
-//     return startAngle + t * (endAngle - startAngle);
-//   }, [value]);
-
-//   const segments = [
-//     { from: -180, to: -135, color: "#d32f2f" },
-//     { from: -135, to: -90, color: "#f2c300" },
-//     { from: -90, to: -45, color: "#b9d84a" },
-//     { from: -45, to: 0, color: "#2e7d32" },
-//   ];
-
-//   return (
-//     <div
-//       style={{
-//         width: "320px",
-//         minHeight: "260px",
-//         background: "#f7f7f7",
-//         border: "1px solid #d9d9d9",
-//         borderRadius: "16px",
-//         padding: "18px",
-//         boxSizing: "border-box",
-//       }}
-//     >
-//       <h3
-//         style={{
-//           margin: 0,
-//           marginBottom: "12px",
-//           fontSize: "18px",
-//           fontWeight: "700",
-//           color: "#111",
-//         }}
-//       >
-//         Power Quality
-//       </h3>
-
-//       <div
-//         style={{
-//           display: "flex",
-//           justifyContent: "center",
-//           alignItems: "center"
-//         }}
-//       >
-//         <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
-//           <path
-//             d={describeArc(cx, cy, r, -180, 0)}
-//             fill="none"
-//             stroke="#eee"
-//             strokeWidth={26}
-//             strokeLinecap="round"
-//           />
-
-//           {segments.map((s, i) => (
-//             <path
-//               key={i}
-//               d={describeArc(cx, cy, r, s.from, s.to)}
-//               fill="none"
-//               stroke={s.color}
-//               strokeWidth={26}
-//               strokeLinecap="butt"
-//             />
-//           ))}
-
-//           {[-135, -90, -45].map((a) => {
-//             const p1 = polarToCartesian(cx, cy, r - 13, a);
-//             const p2 = polarToCartesian(cx, cy, r + 13, a);
-//             return (
-//               <line
-//                 key={a}
-//                 x1={p1.x}
-//                 y1={p1.y}
-//                 x2={p2.x}
-//                 y2={p2.y}
-//                 stroke="#fff"
-//                 strokeWidth={4}
-//                 strokeLinecap="round"
-//                 opacity={0.9}
-//               />
-//             );
-//           })}
-
-//           <g transform={`rotate(${needleAngle} ${cx} ${cy})`}>
-//             <line
-//               x1={cx}
-//               y1={cy}
-//               x2={cx + r * 0.75}
-//               y2={cy}
-//               stroke="#263238"
-//               strokeWidth={5}
-//               strokeLinecap="round"
-//             />
-//           </g>
-
-//           <circle cx={cx} cy={cy} r={12} fill="#263238" />
-//         </svg>
-//       </div>
-
-//       <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: "10px" }}>
-//         <input
-//           type="range"
-//           min={min}
-//           max={max}
-//           value={value}
-//           onChange={(e) => {
-//             const v = Number(e.target.value);
-//             setValue(v);
-//             onValueChange?.(v);
-//           }}
-//           style={{ flex: 1 }}
-//         />
-//         <div style={{ width: 44, textAlign: "right" }}>{value}</div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default Dial_PQ;
-
-// // // Dial that displays power quality in "easy mode"
-// // import React, { useMemo, useState } from "react";
-
-// // // [Helper Function] (math)
-// // function polarToCartesian(cx, cy, r, angleDeg) {
-// //   const rad = (Math.PI / 180) * angleDeg;
-// //   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-// // }
-
-// // // [Helper Function] SVG arc path from startAngle -> endAngle (degrees), clockwise-ish in screen coords
-// // function describeArc(cx, cy, r, startAngle, endAngle) {
-// //   const start = polarToCartesian(cx, cy, r, startAngle);
-// //   const end = polarToCartesian(cx, cy, r, endAngle);
-// //   const largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? "0" : "1";
-
-// //   return [
-// //     "M",
-// //     start.x,
-// //     start.y,
-// //     "A",
-// //     r,
-// //     r,
-// //     0,
-// //     largeArcFlag,
-// //     1,
-// //     end.x,
-// //     end.y,
-// //   ].join(" ");
-// // }
-
-// // // Main dial function 
-// // function Dial_PQ({onValueChange}) {
-// //   // user input (0..100)
-// //   const [value, setValue] = useState(65);
-
-// //   // gauge geometry
-// //   const W = 360;
-// //   const H = 220;
-// //   const cx = W / 2;
-// //   const cy = 170;      // center is lower to make a semicircle
-// //   const r = 120;
-
-// //   // needle angles
-// //   const min = 0;
-// //   const max = 100;
-// //   const startAngle = -180; // left
-// //   const endAngle = 0;      // right
-
-// //   // map value -> angle
-// //   const needleAngle = useMemo(() => {
-// //     const t = (value - min) / (max - min);          // 0..1
-// //     return startAngle + t * (endAngle - startAngle); // -180..0
-// //   }, [value]);
-
-// //   // 4 colored segments (adjust however you want)
-// //   const segments = [
-// //     { from: -180, to: -135, color: "#d32f2f" }, // red
-// //     { from: -135, to: -90,  color: "#f2c300" }, // yellow
-// //     { from: -90,  to: -45,  color: "#b9d84a" }, // light green
-// //     { from: -45,  to: 0,    color: "#2e7d32" }, // green
-// //   ];
-
-// //   return (
-// //     <div style={{ maxWidth: 420, fontFamily: "system-ui, sans-serif" }}>
-// //       <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
-// //         {/* Background arc (optional) */}
-// //         <path
-// //           d={describeArc(cx, cy, r, -180, 0)}
-// //           fill="none"
-// //           stroke="#eee"
-// //           strokeWidth={26}
-// //           strokeLinecap="round"
-// //         />
-
-// //         {/* Colored segments */}
-// //         {segments.map((s, i) => (
-// //           <path
-// //             key={i}
-// //             d={describeArc(cx, cy, r, s.from, s.to)}
-// //             fill="none"
-// //             stroke={s.color}
-// //             strokeWidth={26}
-// //             strokeLinecap="butt"
-// //           />
-// //         ))}
-
-// //         {/* little separators like your image (optional) */}
-// //         {[-135, -90, -45].map((a) => {
-// //           const p1 = polarToCartesian(cx, cy, r - 13, a);
-// //           const p2 = polarToCartesian(cx, cy, r + 13, a);
-// //           return (
-// //             <line
-// //               key={a}
-// //               x1={p1.x}
-// //               y1={p1.y}
-// //               x2={p2.x}
-// //               y2={p2.y}
-// //               stroke="#fff"
-// //               strokeWidth={4}
-// //               strokeLinecap="round"
-// //               opacity={0.9}
-// //             />
-// //           );
-// //         })}
-
-// //         {/* Needle */}
-// //         <g transform={`rotate(${needleAngle} ${cx} ${cy})`}>
-// //           <line
-// //             x1={cx}
-// //             y1={cy}
-// //             x2={cx + r * 0.75}
-// //             y2={cy}
-// //             stroke="#263238"
-// //             strokeWidth={5}
-// //             strokeLinecap="round"
-// //           />
-// //         </g>
-
-// //         {/* Needle hub */}
-// //         <circle cx={cx} cy={cy} r={12} fill="#263238" />
-// //       </svg>
-
-// //       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-// //         <input
-// //           type="range"
-// //           min={min}
-// //           max={max}
-// //           value={value}
-// //           onChange={(e) => {
-// //             const v = Number(e.target.value);
-// //             setValue(v);
-// //             onValueChange?.(v); // <-- send value to parent (if provided)
-// //           }}
-// //           style={{ flex: 1 }}
-// //         />
-// //         <div style={{ width: 44, textAlign: "right" }}>{value}</div>
-// //       </div>
-// //     </div>
-// //   );
-// // }
-
-// // export default Dial_PQ;

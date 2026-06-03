@@ -16,25 +16,25 @@ export default function ChargeForecast({ pq }) {
     stage = {
       bg: '#ffd6d6',
       border: '#d32f2f',
-      text: 'Grid unstable. Avoid charging.',
+      text: 'Grid unstable. Avoid charging',
     };
   } else if (v <= 50) {
     stage = {
       bg: '#fff1c2',
       border: '#f2c300',
-      text: 'Moderate Power Quality. Charge if needed.',
+      text: 'Charge if needed',
     };
   } else if (v <= 75) {
     stage = {
       bg: '#e8f4c6',
       border: '#b9d84a',
-      text: 'Good conditions for charging.',
+      text: 'Good conditions for charging',
     };
   } else {
     stage = {
       bg: '#d7f5dd',
       border: '#2e7d32',
-      text: 'Excellent Power Quality. Best time to charge.',
+      text: 'Best time to charge',
     };
   }
 
@@ -42,15 +42,20 @@ export default function ChargeForecast({ pq }) {
     <div
       style={{
         marginTop: 16,
-        padding: 16,
-        borderRadius: 16,
+        paddingBottom: '5px',
+        paddingTop:'0px',
+        padding: '0px',
+        borderRadius: 12,
         background: stage.bg,
-        border: `2px solid ${stage.border}`,
+        border: `3px solid ${stage.border}`,
+        fontFamily: 'Inter, sans-serif',
+        lineHeight: '20%',
+        color: '#111',
       }}
     >
-      <h3>EV Charge Forecast</h3>
+      <h4>EV Charge Forecast</h4>
       <p>{stage.text}</p>
-      <small>Current Power Quality: {pq}</small>
+      <h4>             </h4>
     </div>
   );
 }

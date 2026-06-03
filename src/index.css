@@ -17,7 +17,7 @@
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -70,13 +70,14 @@ h1,
 h2 {
   font-family: var(--heading);
   font-weight: 500;
-  color: var(--text-h);
+  color: #111112;
 }
 
 h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
   margin: 32px 0;
+  color: #111112;
   @media (max-width: 1024px) {
     font-size: 36px;
     margin: 20px 0;
@@ -87,6 +88,7 @@ h2 {
   line-height: 118%;
   letter-spacing: -0.24px;
   margin: 0 0 8px;
+  color: #111112;
   @media (max-width: 1024px) {
     font-size: 20px;
   }
@@ -108,4 +110,19 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+.network-node {
+  transition: transform 0.25s ease, r 0.25s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+  cursor: pointer;
+}
+
+.network-node:hover {
+  transform: scale(1.4) translateY(-3px);
+}
+
+.graph-carousel::-webkit-scrollbar {
+  display: none;
 }
