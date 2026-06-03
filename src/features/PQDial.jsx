@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import pqData from '../data/pqData.json';
+//import pqData from '../data/pqData.json';
 
 function polarToCartesian(cx, cy, r, angleDeg) {
   const rad = (Math.PI / 180) * angleDeg;
@@ -31,11 +31,13 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
   ].join(' ');
 }
 
-export default function Dial_PQ({ onValueChange }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+export default function Dial_PQ({ pq = 0, onValueChange }) {
+  // const [currentIndex, setCurrentIndex] = useState(0);
 
-  const currentItem = pqData[currentIndex];
-  const value = currentItem?.pq ?? 0;
+  // const currentItem = pqData[currentIndex];
+  // const value = currentItem?.pq ?? 0;
+
+  const value = pq;
 
   const W = 420;
   const H = 230;
@@ -87,13 +89,13 @@ export default function Dial_PQ({ onValueChange }) {
     onValueChange?.(value);
   }, [value, onValueChange]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % pqData.length);
-    }, 3000);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentIndex((prev) => (prev + 1) % pqData.length);
+  //   }, 3000);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const segments = [
     { from: -180, to: -135, color: '#d32f2f' },

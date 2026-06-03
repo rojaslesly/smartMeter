@@ -1,9 +1,22 @@
+import { useState } from "react";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
 import PowerQualityTable from "../features/PowerQualityTable";
 import PowerQualityGraph from "../features/PowerQualityGraph";
 import NetworkStatusCard from "../features/NodesGraph";
 import VoltageGraph from "../features/VoltageGraph";
+import { useGridData } from "../hooks/useGridData";
+
+dayjs.extend(utc);
 
 export default function HardPage() {
+  const [targetTime] = useState(() =>
+    dayjs().utc().format("YYYY-MM-DD HH:mm:ss")
+  );
+
+  const { data } = useGridData(6, targetTime);
+
   return (
     <div>
       <div
@@ -24,7 +37,7 @@ export default function HardPage() {
             margin: "0 auto",
           }}
         >
-          <PowerQualityGraph />
+          <PowerQualityGraph gridData={data} />
         </div>
 
         <div
@@ -34,7 +47,7 @@ export default function HardPage() {
             margin: "0 auto",
           }}
         >
-          <VoltageGraph />
+          <VoltageGraph gridData={data} />
         </div>
       </div>
 

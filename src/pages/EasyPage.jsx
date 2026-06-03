@@ -19,19 +19,10 @@ export default function EasyPage() {
   return (
     <div>
 
-      <Dial_PQ onValueChange={setPq} />
+      {/* <Dial_PQ onValueChange={setPq} /> */}
+      <Dial_PQ pq={data?.power_quality ?? 0} onValueChange={setPq} />
       <ChargeForecast pq={pq} />
       <AreaForecast />
-      <div className="grid-data-viewer">
-        <h3>Grid Data</h3>
-        {isLoading ? (
-          <p>Loading grid data…</p>
-        ) : error ? (
-          <div style={{ color: 'crimson' }}>Error: {error.message}</div>
-        ) : (
-          <pre style={{ whiteSpace: 'pre-wrap' }}>{data ? JSON.stringify(data, null, 2) : 'No data'}</pre>
-        )}
-      </div>
       <ApplianceCarousel />
 
 

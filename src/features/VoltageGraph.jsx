@@ -1,7 +1,55 @@
-import pqData from "../data/pqDataTable.json";
+import { useEffect, useState } from "react";
 
-export default function VoltageGraph() {
-  const data = pqData.data;
+export default function VoltageGraph({ gridData }) {
+  const [history, setHistory] = useState([]);
+
+  const currentVoltage = Number(gridData?.voltage ?? 0);
+  const currentTime = gridData?.record_time ?? new Date().toISOString();
+  const currentRecordId = gridData?.record_id ?? currentTime;
+
+  useEffect(() => {
+    if (!gridData) return;
+
+    const newPoint = {
+      id: currentRecordId,
+      time: currentTime,
+      voltage: currentVoltage,
+    };
+
+    setHistory((prev) => {
+      const alreadySaved = prev.some((point) => point.id === newPoint.id);
+
+      if (alreadySaved) {
+        return prev;
+      }
+
+      return [...prev, newPoint].slice(-3);
+    });
+  }, [gridData, currentRecordId, currentTime, currentVoltage]);
+
+  const getDefaultData = () => {
+    const now = new Date();
+
+    return [
+      {
+        id: "default-1",
+        time: new Date(now.getTime() - 60 * 60 * 1000).toISOString(),
+        voltage: currentVoltage,
+      },
+      {
+        id: "default-2",
+        time: new Date(now.getTime() - 30 * 60 * 1000).toISOString(),
+        voltage: currentVoltage,
+      },
+      {
+        id: "default-3",
+        time: now.toISOString(),
+        voltage: currentVoltage,
+      },
+    ];
+  };
+
+  const data = history.length >= 3 ? history : getDefaultData();
 
   const width = 400;
   const height = 280;
@@ -10,31 +58,35 @@ export default function VoltageGraph() {
   const graphWidth = width - padding * 2;
   const graphHeight = height - padding * 2;
 
-  const voltageValues = data.map((row) => row.voltage);
+  const voltageValues = data.map((row) => Number(row.voltage));
 
-  const minVoltage = Math.min(...voltageValues);
-  const maxVoltage = Math.max(...voltageValues);
+  const rawMinVoltage = Math.min(...voltageValues);
+  const rawMaxVoltage = Math.max(...voltageValues);
 
-  const voltageRange = maxVoltage - minVoltage || 1;
+  const buffer = Math.max((rawMaxVoltage - rawMinVoltage) * 0.2, 5);
 
-  const yTicks = [
-    minVoltage,
-    minVoltage + voltageRange / 2,
-    maxVoltage,
-  ];
+  const minVoltage = rawMinVoltage - buffer;
+  const maxVoltage = rawMaxVoltage + buffer;
+  const voltageRange = maxVoltage - minVoltage;
+
+  const yTicks = [minVoltage, minVoltage + voltageRange / 2, maxVoltage];
 
   const points = data.map((row, index) => {
+    const voltage = Number(row.voltage);
+
     const x = padding + (index / (data.length - 1)) * graphWidth;
 
     const y =
-      padding +
-      ((maxVoltage - row.voltage) / voltageRange) * graphHeight;
+      padding + ((maxVoltage - voltage) / voltageRange) * graphHeight;
 
     return {
       x,
       y,
-      time: row.time,
-      voltage: row.voltage,
+      time: new Date(row.time).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      voltage,
     };
   });
 
@@ -54,7 +106,7 @@ export default function VoltageGraph() {
         maxWidth: "500px",
         boxSizing: "border-box",
         boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-        margin: "16px auto 10 auto",
+        margin: "0 auto 10px auto",
       }}
     >
       <h3
@@ -72,53 +124,25 @@ export default function VoltageGraph() {
       </h3>
 
       <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
-        {/* y-axis */}
-        <line
-          x1={padding}
-          y1={padding}
-          x2={padding}
-          y2={height - padding}
-          stroke="black"
-        />
+        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="black" />
 
-        {/* x-axis */}
-        <line
-          x1={padding}
-          y1={height - padding}
-          x2={width - padding}
-          y2={height - padding}
-          stroke="black"
-        />
+        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="black" />
 
-        {/* y-axis ticks */}
         {yTicks.map((tick) => {
           const y =
-            padding +
-            ((maxVoltage - tick) / voltageRange) * graphHeight;
+            padding + ((maxVoltage - tick) / voltageRange) * graphHeight;
 
           return (
             <g key={tick}>
-              <line
-                x1={padding - 5}
-                y1={y}
-                x2={padding}
-                y2={y}
-                stroke="black"
-              />
+              <line x1={padding - 5} y1={y} x2={padding} y2={y} stroke="black" />
 
-              <text
-                x={padding - 10}
-                y={y + 4}
-                textAnchor="end"
-                fontSize="12"
-              >
+              <text x={padding - 10} y={y + 4} textAnchor="end" fontSize="12">
                 {tick.toFixed(1)}
               </text>
             </g>
           );
         })}
 
-        {/* y-axis title */}
         <text
           x={25}
           y={height / 2}
@@ -130,7 +154,6 @@ export default function VoltageGraph() {
           Voltage
         </text>
 
-        {/* x-axis title */}
         <text
           x={width / 2}
           y={height - 10}
@@ -141,15 +164,8 @@ export default function VoltageGraph() {
           Time
         </text>
 
-        {/* graph line */}
-        <path
-          d={linePath}
-          fill="none"
-          stroke="#2563eb"
-          strokeWidth="3"
-        />
+        <path d={linePath} fill="none" stroke="#2563eb" strokeWidth="3" />
 
-        {/* points, value labels, and time labels */}
         {points.map((point, index) => (
           <g key={index}>
             <circle cx={point.x} cy={point.y} r="5" fill="#2563eb" />
@@ -165,7 +181,7 @@ export default function VoltageGraph() {
               strokeWidth="3"
               paintOrder="stroke"
             >
-              {point.voltage}V
+              {point.voltage.toFixed(1)}V
             </text>
 
             <text
