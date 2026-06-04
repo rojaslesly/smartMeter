@@ -36,24 +36,27 @@ export default function BottomNav({ page, setPage, setMode }) {
 }
 
 const styles = {
-    nav: {
-        position: "sticky",
-        bottom: 0,
-        width: "100%",
-      
-        height: "70px",
-      
-        display: "flex",
-        justifyContent: "space-around",
-        alignItems: "center",
-      
-        background: "#fff",
-        borderTop: "1px solid #ddd",
-        boxShadow: "0 -2px 8px rgba(0,0,0,0.05)",
-      
-        boxSizing: "border-box",
-        zIndex: 1000,
-      },
+  nav: {
+    position: "fixed",
+    bottom: 0,
+    left: "50%",
+    transform: "translateX(-50%)",
+  
+    width: "100%",
+    maxWidth: "430px",
+    height: "70px",
+  
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+  
+    background: "#fff",
+    borderTop: "1px solid #ddd",
+    boxShadow: "0 -2px 8px rgba(0,0,0,0.05)",
+  
+    boxSizing: "border-box",
+    zIndex: 1000,
+  },
 
   button: {
     background: "none",
