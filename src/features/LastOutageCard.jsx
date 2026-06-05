@@ -1,13 +1,14 @@
+import { parseDbTime, formatDbTime } from "../utils/gridData";
 
 export default function LastOutageCard({ gridData }) {
     const rows = Array.isArray(gridData?.rows) ? gridData.rows : [];
   
     const lastOutage = rows
       .filter((row) => Number(row.power_quality) < 0)
-      .sort((a, b) => new Date(b.record_time) - new Date(a.record_time))[0];
+      .sort((a, b) => parseDbTime(b.record_time) - parseDbTime(a.record_time))[0];
   
     const outageDate = lastOutage
-      ? new Date(lastOutage.record_time).toLocaleString([], {
+      ? formatDbTime(lastOutage.record_time, {
           weekday: "short",
           month: "short",
           day: "numeric",
@@ -18,10 +19,10 @@ export default function LastOutageCard({ gridData }) {
   
     return (
       <div style={styles.card}>
-        <p style={styles.label}>Last Area Outage</p>
+        <p style={styles.label}>Last Outage:</p>
         <h2 style={styles.time}>{outageDate}</h2>
         <p style={styles.description}>
-          Outage detected when power quality dropped below 0
+          Outage detected when your home's power quality drops to 0%
         </p>
       </div>
     );

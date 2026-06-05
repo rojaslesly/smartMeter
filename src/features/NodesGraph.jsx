@@ -4,11 +4,10 @@ export default function NetworkStatusCard({ areaState = "Normal" }) {
   const [mouse, setMouse] = useState(null);
 
   const highlightColor =
-    areaState === "Outage" ? "#d32f2f" :
-    areaState === "Warning" ? "#f4c542" :
-    areaState === "Outage Risk" ? "#ff9800" :
-    "#4caf50";
-    areaState === "Stable" ? "#2e7d32" :
+    areaState === "Overload"    ? "#d32f2f" :
+    areaState === "High Demand" ? "#f4c542" :
+    areaState === "Normal Load" ? "#b9d84a" :
+    areaState === "Low Load"    ? "#2e7d32" :
     "#4caf50";
 
   const nodes = [

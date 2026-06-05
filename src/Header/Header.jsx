@@ -1,9 +1,16 @@
 import './Header.css';
+import gridPingLogo from '../assets/GridPing.png';
 
-export default function Header() {
+export default function Header({ onLogoClick }) {
   return (
     <header className="topbar">
-      <h1 className="app-header">GridPing</h1>
+      <button
+        onClick={onLogoClick}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+        aria-label="Go to home"
+      >
+        <img src={gridPingLogo} alt="GridPing" className="app-header-logo" />
+      </button>
     </header>
   );
 }
