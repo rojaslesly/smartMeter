@@ -1,55 +1,23 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 export default function PowerQualityGraph({ gridData }) {
-  const [history, setHistory] = useState([]);
+  const data = useMemo(() => {
+    if (!gridData) return [];
 
-  const currentPowerQuality = gridData?.power_quality ?? 0;
-  const currentTime = gridData?.record_time ?? new Date().toISOString();
-  const currentRecordId = gridData?.record_id ?? currentTime;
+    const rows = Array.isArray(gridData?.rows)
+      ? gridData.rows
+      : [gridData];
 
-  useEffect(() => {
-    if (!gridData) return;
-
-    const newPoint = {
-      id: currentRecordId,
-      time: currentTime,
-      powerQuality: currentPowerQuality,
-    };
-
-    setHistory((prev) => {
-      const alreadySaved = prev.some((point) => point.id === newPoint.id);
-
-      if (alreadySaved) {
-        return prev;
-      }
-
-      return [...prev, newPoint].slice(-3);
-    });
-  }, [gridData, currentRecordId, currentTime, currentPowerQuality]);
-
-  const getDefaultData = () => {
-    const now = new Date();
-
-    return [
-      {
-        id: "default-1",
-        time: new Date(now.getTime() - 60 * 60 * 1000).toISOString(),
-        powerQuality: currentPowerQuality,
-      },
-      {
-        id: "default-2",
-        time: new Date(now.getTime() - 30 * 60 * 1000).toISOString(),
-        powerQuality: currentPowerQuality,
-      },
-      {
-        id: "default-3",
-        time: now.toISOString(),
-        powerQuality: currentPowerQuality,
-      },
-    ];
-  };
-
-  const data = history.length >= 3 ? history : getDefaultData();
+    return rows
+      .filter((row) => row?.record_time && row?.power_quality !== undefined)
+      .sort((a, b) => new Date(a.record_time) - new Date(b.record_time))
+      .slice(-3)
+      .map((row) => ({
+        id: row.record_id,
+        time: row.record_time,
+        powerQuality: row.power_quality,
+      }));
+  }, [gridData]);
 
   const width = 400;
   const height = 280;
@@ -60,7 +28,11 @@ export default function PowerQualityGraph({ gridData }) {
   const yTicks = [0, 25, 50, 75, 100];
 
   const points = data.map((row, index) => {
-    const x = padding + (index / (data.length - 1)) * graphWidth;
+    const x =
+      data.length === 1
+        ? padding + graphWidth / 2
+        : padding + (index / (data.length - 1)) * graphWidth;
+
     const y = padding + ((100 - row.powerQuality) / 100) * graphHeight;
 
     return {
@@ -82,17 +54,16 @@ export default function PowerQualityGraph({ gridData }) {
 
   return (
     <div
-    style={{
-      background: "#fff",
-      border: "1px solid #ddd",
-      borderRadius: "10px",
-      width: "100%",
-      maxWidth: "500px",
-      boxSizing: "border-box",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-      margin: "0 auto 10px auto",
-    }}
-  
+      style={{
+        background: "#fff",
+        border: "1px solid #ddd",
+        borderRadius: "10px",
+        width: "100%",
+        maxWidth: "500px",
+        boxSizing: "border-box",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+        margin: "0 auto 10px auto",
+      }}
     >
       <h3
         style={{
@@ -110,7 +81,6 @@ export default function PowerQualityGraph({ gridData }) {
 
       <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
         <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="black" />
-
         <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="black" />
 
         {yTicks.map((tick) => {
@@ -119,7 +89,6 @@ export default function PowerQualityGraph({ gridData }) {
           return (
             <g key={tick}>
               <line x1={padding - 5} y1={y} x2={padding} y2={y} stroke="black" />
-
               <text x={padding - 10} y={y + 4} textAnchor="end" fontSize="12">
                 {tick}
               </text>
@@ -159,7 +128,7 @@ export default function PowerQualityGraph({ gridData }) {
               strokeWidth="3"
               paintOrder="stroke"
             >
-              {point.powerQuality}
+              {Number(point.powerQuality).toFixed(3).replace(/\.?0+$/, "")}
             </text>
 
             <text x={point.x} y={height - padding + 20} textAnchor="middle" fontSize="12">

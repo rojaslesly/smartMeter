@@ -1,55 +1,23 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 export default function VoltageGraph({ gridData }) {
-  const [history, setHistory] = useState([]);
+  const data = useMemo(() => {
+    if (!gridData) return [];
 
-  const currentVoltage = Number(gridData?.voltage ?? 0);
-  const currentTime = gridData?.record_time ?? new Date().toISOString();
-  const currentRecordId = gridData?.record_id ?? currentTime;
+    const rows = Array.isArray(gridData?.rows)
+      ? gridData.rows
+      : [gridData];
 
-  useEffect(() => {
-    if (!gridData) return;
-
-    const newPoint = {
-      id: currentRecordId,
-      time: currentTime,
-      voltage: currentVoltage,
-    };
-
-    setHistory((prev) => {
-      const alreadySaved = prev.some((point) => point.id === newPoint.id);
-
-      if (alreadySaved) {
-        return prev;
-      }
-
-      return [...prev, newPoint].slice(-3);
-    });
-  }, [gridData, currentRecordId, currentTime, currentVoltage]);
-
-  const getDefaultData = () => {
-    const now = new Date();
-
-    return [
-      {
-        id: "default-1",
-        time: new Date(now.getTime() - 60 * 60 * 1000).toISOString(),
-        voltage: currentVoltage,
-      },
-      {
-        id: "default-2",
-        time: new Date(now.getTime() - 30 * 60 * 1000).toISOString(),
-        voltage: currentVoltage,
-      },
-      {
-        id: "default-3",
-        time: now.toISOString(),
-        voltage: currentVoltage,
-      },
-    ];
-  };
-
-  const data = history.length >= 3 ? history : getDefaultData();
+    return rows
+      .filter((row) => row?.record_time && row?.voltage !== undefined)
+      .sort((a, b) => new Date(a.record_time) - new Date(b.record_time))
+      .slice(-3)
+      .map((row) => ({
+        id: row.record_id,
+        time: row.record_time,
+        voltage: Number(row.voltage),
+      }));
+  }, [gridData]);
 
   const width = 400;
   const height = 280;
@@ -60,24 +28,26 @@ export default function VoltageGraph({ gridData }) {
 
   const voltageValues = data.map((row) => Number(row.voltage));
 
-  const rawMinVoltage = Math.min(...voltageValues);
-  const rawMaxVoltage = Math.max(...voltageValues);
+  const rawMinVoltage = voltageValues.length ? Math.min(...voltageValues) : 0;
+  const rawMaxVoltage = voltageValues.length ? Math.max(...voltageValues) : 0;
 
   const buffer = Math.max((rawMaxVoltage - rawMinVoltage) * 0.2, 5);
 
   const minVoltage = rawMinVoltage - buffer;
   const maxVoltage = rawMaxVoltage + buffer;
-  const voltageRange = maxVoltage - minVoltage;
+  const voltageRange = maxVoltage - minVoltage || 1;
 
   const yTicks = [minVoltage, minVoltage + voltageRange / 2, maxVoltage];
 
   const points = data.map((row, index) => {
     const voltage = Number(row.voltage);
 
-    const x = padding + (index / (data.length - 1)) * graphWidth;
+    const x =
+      data.length === 1
+        ? padding + graphWidth / 2
+        : padding + (index / (data.length - 1)) * graphWidth;
 
-    const y =
-      padding + ((maxVoltage - voltage) / voltageRange) * graphHeight;
+    const y = padding + ((maxVoltage - voltage) / voltageRange) * graphHeight;
 
     return {
       x,
@@ -129,15 +99,14 @@ export default function VoltageGraph({ gridData }) {
         <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="black" />
 
         {yTicks.map((tick) => {
-          const y =
-            padding + ((maxVoltage - tick) / voltageRange) * graphHeight;
+          const y = padding + ((maxVoltage - tick) / voltageRange) * graphHeight;
 
           return (
             <g key={tick}>
               <line x1={padding - 5} y1={y} x2={padding} y2={y} stroke="black" />
 
               <text x={padding - 10} y={y + 4} textAnchor="end" fontSize="12">
-                {tick.toFixed(1)}
+                {tick.toFixed(3).replace(/\.?0+$/, "")}
               </text>
             </g>
           );
@@ -181,7 +150,7 @@ export default function VoltageGraph({ gridData }) {
               strokeWidth="3"
               paintOrder="stroke"
             >
-              {point.voltage.toFixed(1)}V
+              {point.voltage.toFixed(3).replace(/\.?0+$/, "")}V
             </text>
 
             <text
