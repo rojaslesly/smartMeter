@@ -7,6 +7,7 @@ import PowerQualityGraph from "../features/PowerQualityGraph";
 import NetworkStatusCard from "../features/NodesGraph";
 import VoltageGraph from "../features/VoltageGraph";
 import { useGridData } from "../hooks/useGridData";
+import LastOutageCard from "../features/LastOutageCard";
 
 dayjs.extend(utc);
 
@@ -19,6 +20,11 @@ export default function HardPage() {
 
   return (
     <div>
+      <LastOutageCard gridData={data} />
+
+      {/* Space between outage card and graph carousel */}
+      <div style={{ height: "24px" }} />
+
       <div
         style={{
           display: "flex",
