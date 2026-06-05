@@ -22,7 +22,7 @@ function App() {
           position: "relative",
         }}
       >
-        <Header />
+        <Header onLogoClick={() => { setPage("home"); setMode("easy"); }} />
 
         {/* Show toggle everywhere except User page */}
         {page !== "user" && (

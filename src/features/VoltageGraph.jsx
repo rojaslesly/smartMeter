@@ -1,6 +1,7 @@
 import { useMemo } from "react";
+import { parseDbTime, formatDbTime } from "../utils/gridData";
 
-export default function VoltageGraph({ gridData }) {
+export default function VoltageGraph({ gridData, isLoading }) {
   const data = useMemo(() => {
     if (!gridData) return [];
 
@@ -10,7 +11,7 @@ export default function VoltageGraph({ gridData }) {
 
     return rows
       .filter((row) => row?.record_time && row?.voltage !== undefined)
-      .sort((a, b) => new Date(a.record_time) - new Date(b.record_time))
+      .sort((a, b) => parseDbTime(a.record_time) - parseDbTime(b.record_time))
       .slice(-3)
       .map((row) => ({
         id: row.record_id,
@@ -52,10 +53,7 @@ export default function VoltageGraph({ gridData }) {
     return {
       x,
       y,
-      time: new Date(row.time).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      time: formatDbTime(row.record_time, { hour: "2-digit", minute: "2-digit" }),
       voltage,
     };
   });
@@ -65,6 +63,14 @@ export default function VoltageGraph({ gridData }) {
       index === 0 ? `M ${point.x} ${point.y}` : `L ${point.x} ${point.y}`
     )
     .join(" ");
+
+  if (isLoading) {
+    return (
+      <div style={{ background: "#fff", border: "1px solid #ddd", borderRadius: "10px", width: "100%", maxWidth: "500px", boxSizing: "border-box", boxShadow: "0 2px 6px rgba(0,0,0,0.08)", margin: "0 auto 10px auto", height: 280, display: "flex", alignItems: "center", justifyContent: "center", color: "#888" }}>
+        Loading…
+      </div>
+    );
+  }
 
   return (
     <div

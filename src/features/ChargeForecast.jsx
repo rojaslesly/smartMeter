@@ -16,13 +16,13 @@ export default function ChargeForecast({ pq }) {
     stage = {
       bg: '#ffd6d6',
       border: '#d32f2f',
-      text: 'Grid unstable. Avoid charging',
+      text: 'High grid demand — avoid charging',
     };
   } else if (v <= 50) {
     stage = {
       bg: '#fff1c2',
       border: '#f2c300',
-      text: 'Charge if needed',
+      text: 'Charge only if necessary',
     };
   } else if (v <= 75) {
     stage = {

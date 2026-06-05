@@ -1,39 +1,37 @@
-import { useEffect, useState } from 'react';
-import outageData from '../data/outageData.json';
+import { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { useGlobalGridState } from '../hooks/useGridData';
+import { pqToPercent } from '../utils/gridData';
+
+dayjs.extend(utc);
 
 export default function AreaForecast() {
-  const [index, setIndex] = useState(0);
-  const severity = outageData[index]?.severity ?? 2;
-
-  let stage;
-
-  if (severity === 0) {
-    stage = {
-      bg: '#ffd6d6',
-      border: '#d32f2f',
-      text: 'Outage Happening In Your Area',
-    };
-  } else if (severity === 1) {
-    stage = {
-      bg: '#fff4cc',
-      border: '#f2c300',
-      text: 'Grid Is Unstable',
-    };
-  } else {
-    stage = {
-      bg: '#d9f5dd',
-      border: '#2e7d32',
-      text: 'Grid Is Operating Normally',
-    };
-  }
+  const [targetTime, setTargetTime] = useState(() =>
+    dayjs().utc().format('YYYY-MM-DD HH:mm:ss')
+  );
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % outageData.length);
-    }, 3000);
-
-    return () => clearInterval(interval);
+    const id = setInterval(() => {
+      setTargetTime(dayjs().utc().format('YYYY-MM-DD HH:mm:ss'));
+    }, 30000);
+    return () => clearInterval(id);
   }, []);
+
+  const { data, isLoading } = useGlobalGridState(targetTime);
+
+  const pqPct = pqToPercent(data?.power_quality);
+
+  let stage;
+  if (isLoading || !data) {
+    stage = { bg: '#f5f5f5', border: '#aaa', text: 'Loading area forecast…' };
+  } else if (pqPct <= 25) {
+    stage = { bg: '#ffd6d6', border: '#d32f2f', text: 'Critical Demand In Your Area' };
+  } else if (pqPct <= 50) {
+    stage = { bg: '#fff4cc', border: '#f2c300', text: 'High Grid Demand' };
+  } else {
+    stage = { bg: '#d9f5dd', border: '#2e7d32', text: 'Grid Load Is Normal' };
+  }
 
   return (
     <div

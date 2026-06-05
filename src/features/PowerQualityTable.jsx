@@ -1,88 +1,150 @@
-import { useEffect, useState } from 'react';
-import pqData from '../data/pqDataTable.json';
+import { useState } from 'react';
+import { pqToPercent, parseDbTime, formatDbTime } from '../utils/gridData';
 
-export default function PowerQualityTable() {
-  const [data, setData] = useState([]);
-  const [lastUpdated, setLastUpdated] = useState('');
+const columns = [
+  { key: 'time',          label: 'Time' },
+  { key: 'powerQuality',  label: 'Bus PQ' },
+  { key: 'outageState',   label: 'Status' },
+  { key: 'powerLost', label: 'Power Lost' },
+];
 
-  const columns = [
-    { key: 'time', label: 'Time' },
-    { key: 'powerQuality', label: 'Power Quality' },
-    { key: 'outageState', label: 'Outage State' },
-    { key: 'voltage', label: 'Voltage' },
-    { key: 'frequency', label: 'Frequency' },
-  ];
-
-  useEffect(() => {
-    setData(pqData.data);
-    setLastUpdated(pqData.lastUpdated);
-  }, []);
-
-  return (
-    
-    <div>
-    <h2>Power Quality Data</h2>
-  
-    <p>
-      Last Updated:{' '}
-      {lastUpdated
-        ? new Date(lastUpdated).toLocaleString()
-        : 'Loading...'}
-    </p>
-  
-    <div style={{ width: "100%", overflowX: "auto" }}>
-      <table
-
-        cellPadding="10"
-        style={{
-          width: "100%",
-          borderCollapse: "separate",
-          borderSpacing: "6px",
-          fontSize: "11px",
-        }}
-      >
-        <thead>
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                style={{
-                  backgroundColor: "#b8b8b8",
-                  color: "black",
-                }}
-              >
-                {col.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-  
-        <tbody>
-          {data.map((row, index) => (
-            <tr key={index}>
-              {columns.map((col, colIndex) => (
-                <td
-                  key={col.key}
-                  style={{
-                    backgroundColor:
-                      colIndex === 0 ? "#b8b8b8" : "#b8b8b8",
-                    color:
-                      colIndex === 0 ? "black" : "black",
-                    fontWeight:
-                      colIndex === 0 ? "bold" : "normal",
-                  }}
-                >
-                  {row[col.key]}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-    
-  );
-  
+function deriveOutageState(pqPct) {
+  if (pqPct <= 25) return 'Overload';
+  if (pqPct <= 50) return 'High Demand';
+  if (pqPct <= 75) return 'Normal Load';
+  return 'Low Load';
 }
 
+function mapRow(row) {
+  const pqPct = pqToPercent(row.power_quality);
+  return {
+    time: row.record_time
+      ? formatDbTime(row.record_time, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : '—',
+    powerQuality: pqPct,
+    outageState: deriveOutageState(pqPct),
+    powerLost: (() => {
+      // Try common field names the DB might use
+      const raw = row.outage ?? row.status ?? row.outage_present ?? row.is_outage;
+      if (raw == null) return '—';
+      // status=1 means converged (no outage), so invert for "Outage Present"
+      return (raw === 1 || raw === true || raw === '1' || String(raw).toLowerCase() === 'true') ? 'No' : 'Yes';
+    })(),
+  };
+}
+
+const PREVIEW_COUNT = 5;
+
+export default function PowerQualityTable({ rows = [] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const sortedRows = [...rows].sort(
+    (a, b) => parseDbTime(b.record_time) - parseDbTime(a.record_time)
+  );
+  const allTableRows = sortedRows.map(mapRow);
+  const visibleRows = expanded ? allTableRows : allTableRows.slice(0, PREVIEW_COUNT);
+  const hasMore = allTableRows.length > PREVIEW_COUNT;
+
+  const mostRecentTime = sortedRows.length ? sortedRows[0].record_time : null;
+
+  return (
+    <div>
+      <h2 style={{ marginBottom: 2 }}>Power Quality Data</h2>
+      <p style={{ marginTop: 0, marginBottom: 8, fontSize: '12px', color: '#555' }}>
+        Last Updated:{' '}
+        {mostRecentTime ? formatDbTime(mostRecentTime) : 'No data'}
+      </p>
+
+      <div style={{ width: '100%', overflowX: 'auto' }}>
+        <table
+          cellPadding="10"
+          style={{
+            width: '100%',
+            borderCollapse: 'separate',
+            borderSpacing: '6px',
+            fontSize: '11px',
+          }}
+        >
+          <thead>
+            <tr>
+              {columns.map((col) => (
+                <th
+                  key={col.key}
+                  style={{ backgroundColor: '#b8b8b8', color: 'black' }}
+                >
+                  {col.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+
+          <tbody>
+            {visibleRows.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} style={{ textAlign: 'center', backgroundColor: '#b8b8b8' }}>
+                  Loading…
+                </td>
+              </tr>
+            ) : (
+              visibleRows.map((row, index) => (
+                <tr key={index}>
+                  {columns.map((col, colIndex) => (
+                    <td
+                      key={col.key}
+                      style={{
+                        backgroundColor: '#b8b8b8',
+                        color: 'black',
+                        fontWeight: colIndex === 0 ? 'bold' : 'normal',
+                      }}
+                    >
+                      {row[col.key]}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {hasMore && (
+        <button
+          onClick={() => setExpanded((e) => !e)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            width: '100%',
+            marginTop: '6px',
+            padding: '8px 0',
+            background: '#f5f5f5',
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            fontSize: '12px',
+            fontWeight: '600',
+            color: '#555',
+            cursor: 'pointer',
+            outline: 'none',
+            appearance: 'none',
+            WebkitAppearance: 'none',
+          }}
+        >
+          {expanded ? 'Show less' : `Show all ${allTableRows.length} readings`}
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            style={{
+              transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s ease',
+            }}
+          >
+            <path d="M2 4.5L7 9.5L12 4.5" stroke="#555" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}

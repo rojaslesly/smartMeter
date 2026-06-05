@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import { formatDbTime } from '../utils/gridData';
 
 function polarToCartesian(cx, cy, r, angleDeg) {
   const rad = (Math.PI / 180) * angleDeg;
@@ -30,7 +31,7 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
   ].join(' ');
 }
 
-export default function Dial_PQ({ pq = 0, onValueChange }) {
+export default function Dial_PQ({ pq = 0, onValueChange, recordTime }) {
   const value = Math.max(0, Math.round(Number(pq) || 0));
 
   const W = 420;
@@ -42,13 +43,13 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
   const r = 145;
 
   const min = 0;
-  const max = 100;
+  const max = 130; // 100% (ideal/normal) sits at ~77% of the arc; 130% fills it
 
   const startAngle = -180;
   const endAngle = 0;
 
   const bubbleAngle = useMemo(() => {
-    const t = (value - min) / (max - min);
+    const t = Math.min(1, (value - min) / (max - min));
 
     return startAngle + t * (endAngle - startAngle);
   }, [value]);
@@ -56,7 +57,9 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
   const bubblePosition = polarToCartesian(cx, cy, r, bubbleAngle);
 
   const bubbleColor =
-    value <= 25
+    value > 100
+      ? '#1b5e20'
+      : value <= 25
       ? '#d32f2f'
       : value <= 50
       ? '#f2c300'
@@ -65,13 +68,15 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
       : '#2e7d32';
 
   const conditionLabel =
-    value <= 25
-      ? 'Poor conditions'
+    value > 100
+      ? 'Surplus Capacity'
+      : value <= 25
+      ? 'Demand Overload'
       : value <= 50
-      ? 'Moderate conditions'
+      ? 'High Demand'
       : value <= 75
-      ? 'Stable conditions'
-      : 'Excellent conditions';
+      ? 'Normal Load'
+      : 'Low Load';
 
   useEffect(() => {
     onValueChange?.(value);
@@ -79,9 +84,9 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
 
   const segments = [
     { from: -180, to: -135, color: '#d32f2f' },
-    { from: -135, to: -90, color: '#f2c300' },
-    { from: -90, to: -45, color: '#b9d84a' },
-    { from: -45, to: 0, color: '#2e7d32' },
+    { from: -135, to: -90,  color: '#f2c300' },
+    { from: -90,  to: -45,  color: '#b9d84a' },
+    { from: -45,  to: 0,    color: '#2e7d32' },
   ];
 
   return (
@@ -155,7 +160,7 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
           fontWeight="700"
           fill="#000"
         >
-          {value}
+          {value}%
         </text>
 
         <text
@@ -168,6 +173,18 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
         >
           {conditionLabel}
         </text>
+
+        {recordTime && (
+          <text
+            x={cx}
+            y={cy + 24}
+            textAnchor="middle"
+            fontSize="13"
+            fill="#888"
+          >
+            As of: {formatDbTime(recordTime, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          </text>
+        )}
       </svg>
     </div>
   );
