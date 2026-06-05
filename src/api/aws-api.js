@@ -1,6 +1,7 @@
 // src/api/aws-api.js
 // NOTE: Provide `VITE_LAMBDA_URL` in your Vite env (.env) or replace below.
-const LAMBDA_URL = import.meta.env.VITE_LAMBDA_URL;
+// In dev, requests go through Vite proxy (/lambda) to avoid browser CORS blocks.
+const LAMBDA_URL = import.meta.env.DEV ? '/lambda' : import.meta.env.VITE_LAMBDA_URL;
 
 // Matches Lambda QUERY_TYPES
 export const QUERY_TYPES = {
