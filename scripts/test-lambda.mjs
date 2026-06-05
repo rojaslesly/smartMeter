@@ -9,7 +9,8 @@ import { dirname, join } from 'path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const envText = readFileSync(join(root, '.env'), 'utf8');
-const lambdaUrl = envText.match(/^VITE_LAMBDA_URL=(.+)$/m)?.[1]?.trim();
+// Strip optional quotes — Vite does this automatically; this script reads .env directly
+const lambdaUrl = envText.match(/^VITE_LAMBDA_URL=(.+)$/m)?.[1]?.trim().replace(/^["']|["']$/g, '');
 
 if (!lambdaUrl) {
     console.error('Missing VITE_LAMBDA_URL in .env');
@@ -69,6 +70,7 @@ for (const { name, params } of tests) {
     } catch (err) {
         failed++;
         console.log(`FAIL ${name}  ${err.message}`);
+        if (err.cause?.message) console.log(`     cause: ${err.cause.message}`);
     }
     console.log('');
 }
