@@ -20,6 +20,7 @@ If you are developing a production application, we recommend using TypeScript wi
 This project fetches grid/meter data from an AWS Lambda function. The frontend calls the function URL configured via the `VITE_LAMBDA_URL` environment variable used in [src/api/aws-api.js](src/api/aws-api.js).
 
 - Environment: create a local `.env` file with `VITE_LAMBDA_URL` pointing to the Lambda Function URL. Example file (must not be committed): [.env](.env)
+- Test all query types: `npm run test:lambda`
 - Query parameters: `query` (`latest_bus` | `bus_24h` | `latest_global` | `last_outage`), `target_time` (`YYYY-MM-DD HH:mm:ss`), and `bus_id` where required. Lambda returns `{ query, target_time, count, rows }`. See [src/api/aws-api.js](src/api/aws-api.js).
 
 Onboarding steps for a new developer:
