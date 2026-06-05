@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
-//import pqData from '../data/pqData.json';
+import React, { useEffect, useMemo } from 'react';
 
 function polarToCartesian(cx, cy, r, angleDeg) {
   const rad = (Math.PI / 180) * angleDeg;
@@ -32,12 +31,7 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
 }
 
 export default function Dial_PQ({ pq = 0, onValueChange }) {
-  // const [currentIndex, setCurrentIndex] = useState(0);
-
-  // const currentItem = pqData[currentIndex];
-  // const value = currentItem?.pq ?? 0;
-
-  const value = pq;
+  const value = Math.max(0, Math.round(Number(pq) || 0));
 
   const W = 420;
   const H = 230;
@@ -53,29 +47,23 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
   const startAngle = -180;
   const endAngle = 0;
 
-  // Maps value -> bubble angle
   const bubbleAngle = useMemo(() => {
     const t = (value - min) / (max - min);
 
     return startAngle + t * (endAngle - startAngle);
   }, [value]);
 
-  // Gets x/y location of bubble
   const bubblePosition = polarToCartesian(cx, cy, r, bubbleAngle);
 
-  // NEW:
-  // Bubble outline color changes with level
   const bubbleColor =
     value <= 25
-      ? '#d32f2f' // red
+      ? '#d32f2f'
       : value <= 50
-      ? '#f2c300' // yellow
+      ? '#f2c300'
       : value <= 75
-      ? '#b9d84a' // light green
-      : '#2e7d32'; // green
+      ? '#b9d84a'
+      : '#2e7d32';
 
-  // NEW:
-  // Changes label text depending on power quality
   const conditionLabel =
     value <= 25
       ? 'Poor conditions'
@@ -88,14 +76,6 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
   useEffect(() => {
     onValueChange?.(value);
   }, [value, onValueChange]);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentIndex((prev) => (prev + 1) % pqData.length);
-  //   }, 3000);
-
-  //   return () => clearInterval(interval);
-  // }, []);
 
   const segments = [
     { from: -180, to: -135, color: '#d32f2f' },
@@ -130,7 +110,6 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
       </h3>
 
       <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
-        {/* Colored dial segments */}
         {segments.map((s, i) => (
           <path
             key={i}
@@ -142,10 +121,8 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
           />
         ))}
 
-        {/* White separators */}
         {[-135, -90, -45].map((a) => {
           const p1 = polarToCartesian(cx, cy, r - 20, a);
-
           const p2 = polarToCartesian(cx, cy, r + 20, a);
 
           return (
@@ -161,23 +138,18 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
           );
         })}
 
-        {/* Moving bubble */}
         <circle
           cx={bubblePosition.x}
           cy={bubblePosition.y}
           r={22}
-          // Bubble inside
           fill="#fff"
-          // CHANGED:
-          // Bubble border changes color
           stroke={bubbleColor}
           strokeWidth={5}
         />
 
-        {/* Center value */}
         <text
           x={cx}
-          y={cy - 40} // To change position of middle number
+          y={cy - 40}
           textAnchor="middle"
           fontSize="42"
           fontWeight="700"
@@ -186,7 +158,6 @@ export default function Dial_PQ({ pq = 0, onValueChange }) {
           {value}
         </text>
 
-        {/* Label */}
         <text
           x={cx}
           y={cy + 3}
