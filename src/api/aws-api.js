@@ -50,12 +50,3 @@ export async function fetchGlobalGridState(targetTime) {
     }));
     return data?.rows?.[0] ?? null;
 }
-
-export async function fetchLastOutage(busId, targetTime) {
-    const data = await fetchLambda(new URLSearchParams({
-        query: QUERY_TYPES.LAST_OUTAGE,
-        bus_id: busId,
-        target_time: targetTime,
-    }));
-    return data?.rows?.[0] ?? null;
-}

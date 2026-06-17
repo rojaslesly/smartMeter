@@ -1,10 +1,14 @@
 // src/hooks/useGridData.js
 import { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import {
     fetchClosestMeterRecord,
     fetchBus24h,
     fetchGlobalGridState,
 } from '../api/aws-api';
+
+dayjs.extend(utc);
 
 export function useGridData(busId, targetTime) {
     const [data, setData] = useState(null);
@@ -34,7 +38,11 @@ export function useGridData(busId, targetTime) {
     return { data, isLoading, error };
 }
 
-/** Returns the last 24h of rows for a bus as an array. */
+/**
+ * Returns the last 24h of rows for a bus.
+ * Anchors the time window around the most recent available record rather
+ * than "now", so stale data (e.g. collection paused days ago) still loads.
+ */
 export function useBus24h(busId, targetTime) {
     const [rows, setRows] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +55,14 @@ export function useBus24h(busId, targetTime) {
             setIsLoading(true);
             setError(null);
             try {
-                const data = await fetchBus24h(busId, targetTime);
+                // Step 1: find the most recent record for this bus
+                const latest = await fetchClosestMeterRecord(busId, targetTime);
+                const anchor = latest?.record_time
+                    ? dayjs.utc(latest.record_time).format('YYYY-MM-DD HH:mm:ss')
+                    : targetTime;
+
+                // Step 2: fetch 24h of data anchored at that record's time
+                const data = await fetchBus24h(busId, anchor);
                 setRows(data);
             } catch (err) {
                 console.error(err);

@@ -1,31 +1,28 @@
 import { useMemo } from "react";
-import { pqToPercent, parseDbTime, formatDbTime } from "../utils/gridData";
+import { pqToPercent, parseDbTime, formatDbTime, normalizeGridRows } from "../utils/gridData";
+import { cardStyle, titleStyle } from "../styles/graphCard";
 
-const Y_MAX   = 130;
-const Y_TICKS = [0, 25, 50, 75, 100, 130];
+const Y_MAX   = 100;
+const Y_TICKS = [0, 25, 50, 75, 100];
+
+const width  = 400;
+const height = 280;
+const padL   = 60;
+const padR   = 30;
+const padT   = 55;
+const padB   = 60;
+const gW     = width  - padL - padR;
+const gH     = height - padT - padB;
 
 export default function PowerQualityGraph({ gridData, isLoading }) {
-  const data = useMemo(() => {
-    if (!gridData) return [];
-    const rows = Array.isArray(gridData?.rows) ? gridData.rows : [gridData];
-    return rows
+  const data = useMemo(() =>
+    normalizeGridRows(gridData)
       .filter((row) => row?.record_time && row?.power_quality !== undefined)
       .sort((a, b) => parseDbTime(a.record_time) - parseDbTime(b.record_time))
       .slice(-3)
-      .map((row) => ({
-        time: row.record_time,
-        pq: pqToPercent(row.power_quality),
-      }));
-  }, [gridData]);
-
-  const width  = 400;
-  const height = 280;
-  const padL   = 60;
-  const padR   = 30;
-  const padT   = 55;
-  const padB   = 60;
-  const gW     = width  - padL - padR;
-  const gH     = height - padT - padB;
+      .map((row) => ({ time: row.record_time, pq: pqToPercent(row.power_quality) })),
+    [gridData]
+  );
 
   const points = data.map((row, i) => ({
     x: padL + (data.length > 1 ? (i / (data.length - 1)) * gW : gW / 2),
@@ -51,41 +48,20 @@ export default function PowerQualityGraph({ gridData, isLoading }) {
       <h3 style={titleStyle}>Last 3 Meter Readings</h3>
 
       <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
-        {/* Axes */}
         <line x1={padL} y1={padT} x2={padL} y2={height - padB} stroke="#888" strokeWidth="1" />
         <line x1={padL} y1={height - padB} x2={width - padR} y2={height - padB} stroke="#888" strokeWidth="1" />
 
-        {/* Y grid lines + ticks */}
         {Y_TICKS.map((tick) => {
           const y = padT + ((Y_MAX - tick) / Y_MAX) * gH;
           return (
             <g key={tick}>
               <line x1={padL} y1={y} x2={width - padR} y2={y} stroke="#eee" strokeWidth="1" />
               <line x1={padL - 4} y1={y} x2={padL} y2={y} stroke="#888" />
-              <text x={padL - 7} y={y + 4} textAnchor="end" fontSize="10" fill="#555">
-                {tick}%
-              </text>
+              <text x={padL - 7} y={y + 4} textAnchor="end" fontSize="10" fill="#555">{tick}%</text>
             </g>
           );
         })}
 
-        {/* 100% baseline + Ideal label */}
-        {(() => {
-          const y = padT + ((Y_MAX - 100) / Y_MAX) * gH;
-          return (
-            <g>
-              <line
-                x1={padL} y1={y} x2={width - padR} y2={y}
-                stroke="#2e7d32" strokeWidth="1" strokeDasharray="4 3"
-              />
-              <text x={width - padR + 3} y={y + 4} fontSize="9" fill="#2e7d32" fontWeight="600">
-                Ideal
-              </text>
-            </g>
-          );
-        })()}
-
-        {/* Y axis label */}
         <text
           x={12} y={padT + gH / 2}
           textAnchor="middle" fontSize="11" fontWeight="bold" fill="#555"
@@ -94,12 +70,10 @@ export default function PowerQualityGraph({ gridData, isLoading }) {
           PQ %
         </text>
 
-        {/* Data line */}
         {points.length > 1 && (
           <path d={linePath} fill="none" stroke="#2563eb" strokeWidth="2" />
         )}
 
-        {/* Dot markers + value labels + time labels */}
         {points.map((p, i) => (
           <g key={i}>
             <circle cx={p.x} cy={p.y} r="4" fill="#2563eb" />
@@ -116,34 +90,10 @@ export default function PowerQualityGraph({ gridData, isLoading }) {
           </g>
         ))}
 
-        {/* Empty state */}
         {points.length === 0 && (
-          <text x={width / 2} y={height / 2} textAnchor="middle" fontSize="13" fill="#aaa">
-            No data
-          </text>
+          <text x={width / 2} y={height / 2} textAnchor="middle" fontSize="13" fill="#aaa">No data</text>
         )}
       </svg>
     </div>
   );
 }
-
-const cardStyle = {
-  background: "#fff",
-  border: "1px solid #ddd",
-  borderRadius: "10px",
-  width: "100%",
-  maxWidth: "500px",
-  boxSizing: "border-box",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-  margin: "0 auto 10px auto",
-};
-
-const titleStyle = {
-  margin: 10,
-  marginBottom: "-55px",
-  fontSize: "16px",
-  fontWeight: "700",
-  color: "#111",
-  lineHeight: "140%",
-  textAlign: "center",
-};
