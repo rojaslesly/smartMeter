@@ -15,7 +15,6 @@ export default function UserPage() {
         <div style={styles.card}>
           <h3 style={styles.cardTitle}>Energy Goal</h3>
           <p style={styles.text}>Reduce energy use during peak hours.</p>
-          {/* <button style={styles.button}>Edit Goal</button> */}
         </div>
   
         <div style={styles.card}>
@@ -119,16 +118,6 @@ export default function UserPage() {
       fontSize: "14px",
     },
   
-    button: {
-      marginTop: "10px",
-      padding: "10px 14px",
-      borderRadius: "12px",
-      border: "none",
-      background: "#111",
-      color: "#fff",
-      cursor: "pointer",
-    },
-
     attribution: {
       marginTop: "8px",
       marginBottom: "24px",

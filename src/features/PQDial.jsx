@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { formatDbTime } from '../utils/gridData';
+import { useEffect, useMemo } from 'react';
+import { formatDbTime, pqLabel } from '../utils/gridData';
 
 function polarToCartesian(cx, cy, r, angleDeg) {
   const rad = (Math.PI / 180) * angleDeg;
@@ -31,7 +31,7 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
   ].join(' ');
 }
 
-export default function Dial_PQ({ pq = 0, onValueChange, recordTime }) {
+export default function Dial_PQ({ pq = 0, rawPq, onValueChange, recordTime }) {
   const value = Math.max(0, Math.round(Number(pq) || 0));
 
   const W = 420;
@@ -43,7 +43,7 @@ export default function Dial_PQ({ pq = 0, onValueChange, recordTime }) {
   const r = 145;
 
   const min = 0;
-  const max = 130; // 100% (ideal/normal) sits at ~77% of the arc; 130% fills it
+  const max = 100;
 
   const startAngle = -180;
   const endAngle = 0;
@@ -57,26 +57,22 @@ export default function Dial_PQ({ pq = 0, onValueChange, recordTime }) {
   const bubblePosition = polarToCartesian(cx, cy, r, bubbleAngle);
 
   const bubbleColor =
-    value > 100
-      ? '#1b5e20'
-      : value <= 25
+    value <= 20
       ? '#d32f2f'
       : value <= 50
       ? '#f2c300'
-      : value <= 75
+      : value <= 80
       ? '#b9d84a'
       : '#2e7d32';
 
-  const conditionLabel =
-    value > 100
-      ? 'Surplus Capacity'
-      : value <= 25
-      ? 'Demand Overload'
-      : value <= 50
-      ? 'High Demand'
-      : value <= 75
-      ? 'Normal Load'
-      : 'Low Load';
+  // Use direction-aware label when raw value is available, otherwise fall back to %
+  const conditionLabel = rawPq != null
+    ? pqLabel(rawPq)
+    : value >= 95 ? 'Ideal'
+    : value >= 80 ? 'Normal Load'
+    : value >= 50 ? 'Heavy Load'
+    : value >= 20 ? 'Brownout Risk'
+    : 'Critical';
 
   useEffect(() => {
     onValueChange?.(value);

@@ -1,28 +1,86 @@
-# React + Vite
+![GridPing](src/assets/GridPing_WhiteBG.png)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# GridPing — Smart Meter Dashboard
 
-Currently, two official plugins are available:
+A mobile React web app that displays real-time power quality data for a residential smart meter node.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## What it does
 
-## React Compiler
+- **Home tab** — live power quality dial, EV charge forecast, and area grid forecast
+- **Analytics tab** — 24-hour PQ graph, last 3 meter readings, power quality table, and global grid state
+- **Profile tab** — user settings and attributions
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Power quality is scored 0–100% using an asymmetric tolerance band based on ANSI C84.1, where 100% = nominal voltage and deviations in either direction (overvoltage or undervoltage) reduce the score.
 
-## Expanding the ESLint configuration
+## Tech stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+| Layer | Technology |
+|---|---|
+| UI | React 19, Vite 7 |
+| Data | AWS Lambda (via fetch) |
+| Time | dayjs (UTC) |
+| Styling | Inline style objects |
 
-## Backend / Lambda
+## Getting started
 
-This project fetches grid/meter data from an AWS Lambda function. The frontend calls the function URL configured via the `VITE_LAMBDA_URL` environment variable used in [src/api/aws-api.js](src/api/aws-api.js).
+**1. Install dependencies**
+```bash
+npm install
+```
 
-- Environment: create a local `.env` file with `VITE_LAMBDA_URL` pointing to the Lambda Function URL. Example file (must not be committed): [.env](.env)
-- Test all query types: `npm run test:lambda`
-- Query parameters: `query` (`latest_bus` | `bus_24h` | `latest_global` | `last_outage`), `target_time` (`YYYY-MM-DD HH:mm:ss`), and `bus_id` where required. Lambda returns `{ query, target_time, count, rows }`. See [src/api/aws-api.js](src/api/aws-api.js).
+**2. Set up environment**
 
-Onboarding steps for a new developer:
+Reach out to nikoloda@oregonstate.edu for `.env` file and place at the project root (the file is in .gitignore list):
+```
+VITE_LAMBDA_URL=______________
+```
 
-Retreive the .env file and place at the root of the project to have access to lambda function url
+In development, requests are proxied through Vite (`/lambda`) to avoid CORS. In production, the full Lambda URL is used directly.
+
+**3. Run locally**
+```bash
+npm run dev
+```
+
+**4. Test Lambda connectivity**
+```bash
+npm run test:lambda
+```
+This hits all four query types and prints the raw responses so you can verify the data pipeline without opening a browser.
+
+## Lambda API
+
+All data is fetched from a single Lambda function URL with a `query` parameter:
+
+| Query | Parameters | Returns |
+|---|---|---|
+| `latest_bus` | `bus_id`, `target_time` | Most recent meter record for a bus |
+| `bus_24h` | `bus_id`, `target_time` | All records for a bus in the 24h window ending at `target_time` |
+| `latest_global` | `target_time` | Most recent global grid state record |
+| `last_outage` | `bus_id`, `target_time` | Most recent outage record for a bus |
+
+`target_time` format: `YYYY-MM-DD HH:mm:ss` (UTC). All responses follow `{ query, target_time, count, rows[] }`.
+
+
+## Project structure
+
+```
+src/
+  api/          # AWS Lambda fetch wrappers
+  assets/       # Images and icons
+  components/   # Shared UI components (LiveRefreshBar)
+  dashboard/    # Bottom nav shell
+  features/     # Page-level feature components
+  frames/       # App layout (phone frame, routing)
+  hooks/        # Data-fetching hooks (useGridData, useBus24h, useGlobalGridState)
+  pages/        # Top-level pages (EasyPage, HardPage, UserPage)
+  styles/       # Shared style constants
+  utils/        # gridData.js — pqToPercent, pqLabel, utcNow, etc.
+```
+
+## Build
+
+```bash
+npm run build   # outputs to dist/
+npm run preview # serves the dist/ build locally
+```

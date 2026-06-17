@@ -1,18 +1,19 @@
 import { useState } from 'react';
-import { pqToPercent, parseDbTime, formatDbTime } from '../utils/gridData';
+import { pqToPercent, pqLabel, parseDbTime, formatDbTime } from '../utils/gridData';
 
 const columns = [
   { key: 'time',          label: 'Time' },
   { key: 'powerQuality',  label: 'Bus PQ' },
-  { key: 'outageState',   label: 'Status' },
+  { key: 'outageState',   label: 'Voltage Status' },
   { key: 'powerLost', label: 'Power Lost' },
 ];
 
+// Direction-neutral fallback (used only if raw value missing)
 function deriveOutageState(pqPct) {
-  if (pqPct <= 25) return 'Overload';
-  if (pqPct <= 50) return 'High Demand';
-  if (pqPct <= 75) return 'Normal Load';
-  return 'Low Load';
+  if (pqPct <= 20) return 'Critical';
+  if (pqPct <= 50) return 'Heavy Load';
+  if (pqPct <= 80) return 'Normal Load';
+  return 'Ideal';
 }
 
 function mapRow(row) {
@@ -22,14 +23,9 @@ function mapRow(row) {
       ? formatDbTime(row.record_time, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
       : '—',
     powerQuality: pqPct,
-    outageState: deriveOutageState(pqPct),
-    powerLost: (() => {
-      // Try common field names the DB might use
-      const raw = row.outage ?? row.status ?? row.outage_present ?? row.is_outage;
-      if (raw == null) return '—';
-      // status=1 means converged (no outage), so invert for "Outage Present"
-      return (raw === 1 || raw === true || raw === '1' || String(raw).toLowerCase() === 'true') ? 'No' : 'Yes';
-    })(),
+    outageState: row.power_quality != null ? pqLabel(row.power_quality) : deriveOutageState(pqPct),
+    // Quality Alert: only truly critical (beyond ANSI limits)
+    powerLost: pqPct <= 20 ? 'Yes' : 'No',
   };
 }
 

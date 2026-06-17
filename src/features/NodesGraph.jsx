@@ -4,10 +4,10 @@ export default function NetworkStatusCard({ areaState = "Normal" }) {
   const [mouse, setMouse] = useState(null);
 
   const highlightColor =
-    areaState === "Overload"    ? "#d32f2f" :
-    areaState === "High Demand" ? "#f4c542" :
+    areaState === "Critical"    ? "#d32f2f" :
+    areaState === "Heavy Load"  ? "#f4c542" :
     areaState === "Normal Load" ? "#b9d84a" :
-    areaState === "Low Load"    ? "#2e7d32" :
+    areaState === "Ideal"       ? "#2e7d32" :
     "#4caf50";
 
   const nodes = [
@@ -28,8 +28,6 @@ export default function NetworkStatusCard({ areaState = "Normal" }) {
     [6, 7], [3, 8], [8, 9], [9, 10], [10, 7],
     [2, 8], [4, 9], [5, 10],
   ];
-
-  const getNode = (id) => nodes.find((node) => node.id === id);
 
   const moveNode = (node) => {
     if (!mouse) return node;
