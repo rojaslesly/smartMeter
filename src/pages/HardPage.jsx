@@ -1,23 +1,17 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import PowerQualityTable from "../features/PowerQualityTable";
 import PowerQualityGraph from "../features/PowerQualityGraph";
-import NetworkStatusCard from "../features/NodesGraph";
+import MapVisualization from "../features/MapVisualization";
 import PQGraph24h from "../features/PQGraph24h";
 import LastOutageCard from "../features/LastOutageCard";
 import GlobalStateCard from "../features/GlobalStateCard";
 import LiveRefreshBar from "../components/LiveRefreshBar";
 import { useBus24h, useGlobalGridState } from "../hooks/useGridData";
-import { pqToPercent, utcNow } from "../utils/gridData";
+import { utcNow } from "../utils/gridData";
 
 const TAB_BUS    = "bus";
 const TAB_GLOBAL = "global";
 
-function deriveAreaState(pqPct) {
-  if (pqPct <= 20) return "Critical";
-  if (pqPct <= 50) return "Heavy Load";
-  if (pqPct <= 80) return "Normal Load";
-  return "Ideal";
-}
 
 export default function HardPage() {
   const [targetTime, setTargetTime] = useState(utcNow);
@@ -33,11 +27,30 @@ export default function HardPage() {
     setTimeout(() => setSpinning(false), 800);
   }, []);
 
-  const areaState = globalState
-    ? deriveAreaState(pqToPercent(globalState.power_quality))
-    : "Stable";
-
   const graphData = { rows };
+
+  const carouselRef = useRef(null);
+  const dragState = useRef({ dragging: false, startX: 0, scrollLeft: 0 });
+
+  const onMouseDown = (e) => {
+    const el = carouselRef.current;
+    dragState.current = { dragging: true, startX: e.pageX - el.offsetLeft, scrollLeft: el.scrollLeft };
+    el.style.cursor = "grabbing";
+    el.style.scrollSnapType = "none";
+  };
+  const onMouseMove = (e) => {
+    if (!dragState.current.dragging) return;
+    e.preventDefault();
+    const el = carouselRef.current;
+    const x = e.pageX - el.offsetLeft;
+    el.scrollLeft = dragState.current.scrollLeft - (x - dragState.current.startX);
+  };
+  const onMouseUp = () => {
+    dragState.current.dragging = false;
+    const el = carouselRef.current;
+    el.style.cursor = "grab";
+    el.style.scrollSnapType = "x mandatory";
+  };
 
   return (
     <div>
@@ -64,8 +77,13 @@ export default function HardPage() {
           <div style={{ height: "24px" }} />
 
           <div
-            style={{ display: "flex", overflowX: "auto", scrollSnapType: "x mandatory", scrollbarWidth: "none", msOverflowStyle: "none", gap: "16px" }}
+            ref={carouselRef}
+            style={{ display: "flex", overflowX: "auto", overflowY: "hidden", scrollSnapType: "x mandatory", scrollbarWidth: "none", msOverflowStyle: "none", gap: "16px", cursor: "grab", userSelect: "none" }}
             className="graph-carousel"
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
           >
             <div style={{ minWidth: "85%", scrollSnapAlign: "center", margin: "0 auto" }}>
               <PowerQualityGraph gridData={graphData} isLoading={graphLoading} />
@@ -78,13 +96,13 @@ export default function HardPage() {
           <div style={{ margin: "20px" }} />
 
           <PowerQualityTable rows={rows} />
-          <NetworkStatusCard areaState={areaState} />
         </>
       )}
 
       {activeTab === TAB_GLOBAL && (
         <div style={{ marginTop: "16px" }}>
           <GlobalStateCard data={globalState} />
+          <MapVisualization />
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { pqToPercent, parseDbTime, formatDbTime, normalizeGridRows } from "../utils/gridData";
 import { cardStyle, titleStyle } from "../styles/graphCard";
+import ZoomableGraph from "../components/ZoomableGraph";
 
 const Y_MAX   = 100;
 const Y_TICKS = [0, 25, 50, 75, 100];
@@ -44,6 +45,7 @@ export default function PowerQualityGraph({ gridData, isLoading }) {
   }
 
   return (
+    <ZoomableGraph>
     <div style={cardStyle}>
       <h3 style={titleStyle}>Last 3 Meter Readings</h3>
 
@@ -95,5 +97,6 @@ export default function PowerQualityGraph({ gridData, isLoading }) {
         )}
       </svg>
     </div>
+    </ZoomableGraph>
   );
 }

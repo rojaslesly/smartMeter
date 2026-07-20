@@ -93,15 +93,15 @@ const styles = {
     fontSize: '13px',
   },
   labelCell: {
-    backgroundColor: '#b8b8b8',
+    backgroundColor: '#d0d0d0',
     color: '#000',
     fontWeight: 'bold',
-    borderRadius: '4px',
+    borderRadius: '6px',
     width: '45%',
   },
   valueCell: {
     backgroundColor: '#e8e8e8',
     color: '#000',
-    borderRadius: '4px',
+    borderRadius: '6px',
   },
 };

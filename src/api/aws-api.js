@@ -3,8 +3,7 @@
 // In dev, requests go through Vite proxy (/lambda) to avoid browser CORS blocks.
 const LAMBDA_URL = import.meta.env.DEV ? '/lambda' : import.meta.env.VITE_LAMBDA_URL;
 
-// Matches Lambda QUERY_TYPES
-export const QUERY_TYPES = {
+const QUERY_TYPES = {
     LATEST_BUS: 'latest_bus',
     BUS_24H: 'bus_24h',
     LATEST_GLOBAL: 'latest_global',

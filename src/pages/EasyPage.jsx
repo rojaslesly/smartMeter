@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Dial_PQ from "../features/PQDial";
 import ChargeForecast from "../features/ChargeForecast";
-import AreaForecast from "../features/AreaForecast";
+import GridWidePQ from "../features/GridWidePQ";
 import ApplianceCarousel from "../features/ApplianceCarousel";
 import LiveRefreshBar from "../components/LiveRefreshBar";
 import { useGridData } from "../hooks/useGridData";
@@ -40,7 +40,7 @@ export default function EasyPage() {
         recordTime={data?.record_time}
       />
       <ChargeForecast pq={pq} rawPq={data?.power_quality} />
-      <AreaForecast />
+      <GridWidePQ />
       <ApplianceCarousel />
     </div>
   );
