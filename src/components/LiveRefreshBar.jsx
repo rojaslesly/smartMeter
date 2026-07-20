@@ -2,6 +2,12 @@
 export default function LiveRefreshBar({ isLive, isLoading, onRefresh, spinning }) {
   return (
     <div style={styles.row}>
+      <span style={styles.location}>
+        <svg width="9" height="13" viewBox="0 0 10 14" style={{ marginRight: '3px', verticalAlign: 'middle', flexShrink: 0 }}>
+          <path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 7a2 2 0 110-4 2 2 0 010 4z" fill="#aaa"/>
+        </svg>
+        Daniel's Smart Meter · <em>Zamość, Poland</em>
+      </span>
       <span style={styles.status}>
         <span style={{ ...styles.dot, background: isLive ? '#22c55e' : '#d1d5db' }} />
         {isLoading ? 'Updating…' : isLive ? 'Live' : 'No data'}
@@ -27,6 +33,11 @@ const styles = {
     alignItems: 'center',
     gap: '8px',
     marginBottom: '6px',
+  },
+  location: {
+    fontSize: '11px',
+    color: '#aaa',
+    marginRight: 'auto',
   },
   status: {
     display: 'flex',

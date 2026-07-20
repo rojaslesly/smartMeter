@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { pqToPercent, parseDbTime, formatDbTime, normalizeGridRows } from "../utils/gridData";
 import { cardStyle, titleStyle } from "../styles/graphCard";
+import ZoomableGraph from "../components/ZoomableGraph";
 
 const Y_MAX      = 100;
 const Y_TICKS    = [0, 25, 50, 75, 100];
@@ -51,6 +52,7 @@ export default function PQGraph24h({ gridData, isLoading }) {
   }
 
   return (
+    <ZoomableGraph>
     <div style={cardStyle}>
       <h3 style={titleStyle}>Power Quality | 24 hr</h3>
 
@@ -96,5 +98,6 @@ export default function PQGraph24h({ gridData, isLoading }) {
         )}
       </svg>
     </div>
+    </ZoomableGraph>
   );
 }

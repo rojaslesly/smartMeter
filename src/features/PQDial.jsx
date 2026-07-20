@@ -100,11 +100,11 @@ export default function Dial_PQ({ pq = 0, rawPq, onValueChange, recordTime }) {
         style={{
           margin: 10,
           marginBottom: '5px',
-          paddingRight: '200px',
           fontSize: '16px',
           fontWeight: '700',
           color: '#111',
           lineHeight: '140%',
+          whiteSpace: 'nowrap',
         }}
       >
         Power Quality

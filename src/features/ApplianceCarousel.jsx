@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import fridgeIcon from '../assets/fridge.svg';
 import tvIcon from '../assets/tv.svg';
 import washerIcon from '../assets/washing.svg';
@@ -9,19 +10,44 @@ const appliances = [
 ];
 
 export default function ApplianceCarousel() {
+  const carouselRef = useRef(null);
+  const dragState = useRef({ dragging: false, startX: 0, scrollLeft: 0 });
+
+  const onMouseDown = (e) => {
+    const el = carouselRef.current;
+    dragState.current = { dragging: true, startX: e.pageX - el.offsetLeft, scrollLeft: el.scrollLeft };
+    el.style.cursor = 'grabbing';
+  };
+  const onMouseMove = (e) => {
+    if (!dragState.current.dragging) return;
+    e.preventDefault();
+    const el = carouselRef.current;
+    el.scrollLeft = dragState.current.scrollLeft - (e.pageX - el.offsetLeft - dragState.current.startX);
+  };
+  const onMouseUp = () => {
+    dragState.current.dragging = false;
+    carouselRef.current.style.cursor = 'grab';
+  };
+
   return (
     <div style={styles.wrapper}>
       <div style={styles.header}>
         <h3 style={styles.title}> Detected Appliances</h3>
 
-        <button style={styles.arrowButton}>›</button>
       </div>
 
-      <div style={styles.carousel}>
+      <div
+        ref={carouselRef}
+        style={{ ...styles.carousel, cursor: 'grab', userSelect: 'none' }}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+      >
         {appliances.map((item) => (
           <div key={item.id} style={styles.item}>
             <div style={styles.circle}>
-              <img src={item.icon} alt={item.name} style={styles.icon} />
+              <img src={item.icon} alt={item.name} style={styles.icon} draggable="false" />
             </div>
 
             <h3 style={styles.name}>{item.name}</h3>
@@ -53,17 +79,6 @@ const styles = {
     fontWeight: '700',
     lineHeight: '140%',
     color: '#111',
-  },
-
-  arrowButton: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    border: 'none',
-    backgroundColor: '#f4f4f4',
-    fontSize: '30px',
-    lineHeight: '28px',
-    cursor: 'pointer',
   },
 
   carousel: {

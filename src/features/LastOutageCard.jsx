@@ -22,7 +22,7 @@ export default function LastOutageCard({ gridData }) {
         <p style={styles.label}>Last Outage:</p>
         <h2 style={styles.time}>{outageDate}</h2>
         <p style={styles.description}>
-          Outage detected when your home's power quality drops to 0%
+          An outage is detected when your home's power quality drops to 0%
         </p>
       </div>
     );
@@ -38,16 +38,17 @@ export default function LastOutageCard({ gridData }) {
       boxSizing: "border-box",
       boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
       marginTop: "20px",
-    
     },
     label: {
       margin: 0,
       fontSize: "14px",
+      fontWeight: "700",
       color: "#666",
     },
     time: {
       margin: "6px 0",
       fontSize: "22px",
+      fontWeight: "700",
       color: "#111",
     },
     description: {

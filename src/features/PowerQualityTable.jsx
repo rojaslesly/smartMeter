@@ -66,7 +66,7 @@ export default function PowerQualityTable({ rows = [] }) {
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  style={{ backgroundColor: '#b8b8b8', color: 'black' }}
+                  style={{ backgroundColor: '#d0d0d0', color: 'black', borderRadius: '6px' }}
                 >
                   {col.label}
                 </th>
@@ -77,7 +77,7 @@ export default function PowerQualityTable({ rows = [] }) {
           <tbody>
             {visibleRows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} style={{ textAlign: 'center', backgroundColor: '#b8b8b8' }}>
+                <td colSpan={columns.length} style={{ textAlign: 'center', backgroundColor: '#e8e8e8', borderRadius: '6px' }}>
                   Loading…
                 </td>
               </tr>
@@ -88,8 +88,9 @@ export default function PowerQualityTable({ rows = [] }) {
                     <td
                       key={col.key}
                       style={{
-                        backgroundColor: '#b8b8b8',
+                        backgroundColor: '#e8e8e8',
                         color: 'black',
+                        borderRadius: '6px',
                         fontWeight: colIndex === 0 ? 'bold' : 'normal',
                       }}
                     >
