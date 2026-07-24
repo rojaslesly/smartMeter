@@ -10,9 +10,9 @@ const columns = [
 
 // Direction-neutral fallback (used only if raw value missing)
 function deriveOutageState(pqPct) {
-  if (pqPct <= 20) return 'Critical';
-  if (pqPct <= 50) return 'Heavy Load';
-  if (pqPct <= 80) return 'Normal Load';
+  if (pqPct <= 19) return 'Critical';
+  if (pqPct <= 49) return 'Poor';
+  if (pqPct <= 79) return 'Normal Load';
   return 'Ideal';
 }
 
@@ -25,7 +25,7 @@ function mapRow(row) {
     powerQuality: pqPct,
     outageState: row.power_quality != null ? pqLabel(row.power_quality) : deriveOutageState(pqPct),
     // Quality Alert: only truly critical (beyond ANSI limits)
-    powerLost: pqPct <= 20 ? 'Yes' : 'No',
+    powerLost: pqPct <= 19 ? 'Yes' : 'No',
   };
 }
 
