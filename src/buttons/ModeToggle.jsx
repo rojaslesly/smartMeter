@@ -6,7 +6,7 @@ export default function ModeToggle({ mode, setMode }) {
     cursor: 'pointer',
     fontSize: '13px',
     fontWeight: 500,
-    background: active ? '#1f1f1f' : '#f5f5f5',
+    background: active ? '#1f1f1f' : '#e9e9e6',
     color: active ? 'white' : '#111',
     fontFamily: 'Arial, sans-serif',
     transition: '0.2s ease',

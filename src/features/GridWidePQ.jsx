@@ -18,24 +18,29 @@ export default function GridWidePQ() {
   let stage;
   if (isLoading || !data) {
     stage = { bg: '#f5f5f5', border: '#aaa', label: 'Loading…', text: '' };
-  } else if (pqPct <= 20) {
+  } else if (pqPct <= 19) {
     stage = {
       bg: '#ffd6d6', border: '#d32f2f', label: 'Critical',
       text: isHigh ? 'Significantly higher voltage than expected' : 'Significantly lower voltage than expected',
     };
-  } else if (pqPct <= 50) {
+  } else if (pqPct <= 49) {
     stage = {
-      bg: '#fff4cc', border: '#f2c300', label: 'Low',
+      bg: '#fff4cc', border: '#f2c300', label: 'Poor',
       text: isHigh ? 'Higher voltage than expected' : 'Lower voltage than expected',
     };
-  } else if (pqPct < 95) {
+  } else if (pqPct <= 79) {
     stage = {
-      bg: '#d9f5dd', border: '#2e7d32', label: 'Slightly Low',
+      bg: '#e8f4c6', border: '#b9d84a', label: 'Fair',
+      text: isHigh ? 'Slightly higher voltage than expected' : 'Slightly lower voltage than expected',
+    };
+  } else if (pqPct <= 94) {
+    stage = {
+      bg: '#d9f5dd', border: '#2e7d32', label: 'Normal',
       text: isHigh ? 'Slightly higher voltage than expected' : 'Slightly lower voltage than expected',
     };
   } else {
     stage = {
-      bg: '#c8f5d0', border: '#1b5e20', label: 'Normal',
+      bg: '#c8f5d0', border: '#1b5e20', label: 'Ideal',
       text: 'Ideal voltage conditions',
     };
   }
@@ -43,7 +48,7 @@ export default function GridWidePQ() {
   return (
     <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 12, background: stage.bg, border: `3px solid ${stage.border}`, color: '#111' }}>
       <h4 style={{ margin: '0 0 6px 0' }}>Poland Grid Power Quality:</h4>
-      <p style={{ margin: 0, fontWeight: 600, textAlign: 'center' }}>{stage.label}</p>
+      <p style={{ margin: 0, fontWeight: 700, fontSize: '20px', textAlign: 'center' }}>{stage.label}</p>
       {stage.text ? <p style={{ margin: '2px 0 0 0', fontSize: '13px', textAlign: 'center' }}>{stage.text}</p> : null}
     </div>
   );

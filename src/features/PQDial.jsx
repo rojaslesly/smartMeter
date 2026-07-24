@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { formatDbTime, pqLabel } from '../utils/gridData';
+import { formatDbTime } from '../utils/gridData';
 
 function polarToCartesian(cx, cy, r, angleDeg) {
   const rad = (Math.PI / 180) * angleDeg;
@@ -57,22 +57,23 @@ export default function Dial_PQ({ pq = 0, rawPq, onValueChange, recordTime }) {
   const bubblePosition = polarToCartesian(cx, cy, r, bubbleAngle);
 
   const bubbleColor =
-    value <= 20
+    value <= 19
       ? '#d32f2f'
-      : value <= 50
+      : value <= 49
       ? '#f2c300'
-      : value <= 80
+      : value <= 79
       ? '#b9d84a'
+      : value <= 94
+      ? '#66bb6a'
       : '#2e7d32';
 
-  // Use direction-aware label when raw value is available, otherwise fall back to %
-  const conditionLabel = rawPq != null
-    ? pqLabel(rawPq)
-    : value >= 95 ? 'Ideal'
-    : value >= 80 ? 'Normal Load'
-    : value >= 50 ? 'Heavy Load'
-    : value >= 20 ? 'Brownout Risk'
-    : 'Critical';
+  const conditionLabel =
+    value === 0 ? 'Critical'
+    : value <= 19 ? 'Brownout Risk'
+    : value <= 49 ? 'Poor'
+    : value <= 79 ? 'Fair'
+    : value <= 94 ? 'Normal'
+    : 'Ideal';
 
   useEffect(() => {
     onValueChange?.(value);
@@ -163,9 +164,9 @@ export default function Dial_PQ({ pq = 0, rawPq, onValueChange, recordTime }) {
           x={cx}
           y={cy + 3}
           textAnchor="middle"
-          fontSize="18"
-          fill="#000"
-          fontWeight="500"
+          fontSize="22"
+          fill={bubbleColor}
+          fontWeight="700"
         >
           {conditionLabel}
         </text>
